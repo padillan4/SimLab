@@ -1,9 +1,8 @@
 
-
 /**
  * Event Class
  * 
- * @author (your name) 
+ * @author Ethan Hudak
  * @version (a version number or a date)
  */
 
@@ -77,22 +76,29 @@ public class Event
 
     static public void EventSchedule(Event ev)
     {
+    	
     }
 
     static public void InsertInQueue(Event ev, Order order, int qNum)
     {
-
+    	if(qNum >= 1 || qNum <= 24) {
+    		queueLists.add(queueLists.size(), eventList);
+    		
+    	}
+    	
     }
 
     static Object RemoveFromQueue(Order order, int qNum)
     {
-
+    	
+    	return 0;
     }
 
 
 
     static public void Initialize()
     {        
+    	
     }
 
     static public double GetSimTime()
@@ -110,10 +116,39 @@ public class Event
         return tellerNumber;
     }
 
+    /**
+     * Gets the amount of Events before the specified qNum
+     * 
+     * @param qNum    the specified qNum
+     */
     static public int GetQueueSize(int qNum)
     {
+    	int waitLength = 0;
+    	for(int i = 0; i < qNum; i++) {
+    		waitLength = i;
+    	}
+    	return waitLength;
     }
 
+    /**
+     * Searches for the first Event object with specified eventType
+     * then removes it from eventList.
+     * 
+     * @param eventType    the event type to be removed
+     */
+    static public void EventCancel(int eventType) 
+    {
+    	int i = 0; 
+    	while(i < eventList.size()) {
+    		if(eventList.get(i).GetEventType() == eventType) {
+    			eventList.remove(i);
+    			i = eventList.size(); //Kills the loop
+    		} else {
+    			i++;
+    		}
+    	}
+    }
+    
     static public void Timing()
     {
         Event ev      = (Event)RemoveFromQueue(Order.FIRST, 25);
@@ -122,4 +157,30 @@ public class Event
         tellerNumber  = ev.GetTeller();
         
     }
+
+    /**
+     * I don't know what this methods suppose to do
+     * @param d
+     * @param sampstDelays
+     */
+	public static void Sampst(double d, int sampstDelays) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+     * I don't know what this methods suppose to do
+     */
+	public static double Filest(int j) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	/**
+     * I don't know what this methods suppose to do
+     */
+	public static void OutSampst(int sampstDelays, int sampstDelays2) {
+		// TODO Auto-generated method stub
+		
+	}
 }
