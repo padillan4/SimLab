@@ -1,6 +1,7 @@
-package simLab;
+package SimLab;
 
 import java.util.Scanner;
+import java.util.ArrayList;
 
 // File to execute
 public class Sim {
@@ -61,8 +62,9 @@ public class Sim {
 		}
 		else if(simSelected.toLowerCase().equals("banking")) {
 			//Selected Banking simulation
-			int minTellers, maxTellers;
-			double meanInterArrival, meanService, lengthDoorOpens;
+			int minTellers, maxTellers, nEvents, numTellers;
+			double meanInterArrival, meanService, lengthDoorsOpen;
+			ArrayList<Double> timeArrival;
 			
 			//Gather input data
 			System.out.println("You have selected multiteller banking simulation.");
@@ -74,12 +76,60 @@ public class Sim {
 			meanInterArrival = sc.nextDouble();
 			System.out.print("Enter mean service time(double): ");
 			meanService = sc.nextDouble();
-			System.out.print("Enter total time bank is open(double): ");
-			lengthDoorOpens = sc.nextDouble();
+			System.out.print("Enter total time bank is open in hours(double): ");
+			lengthDoorsOpen = sc.nextDouble();
 			System.out.println();
 			sc.close();
 			
-			//Run banking simulation
+			//Initialize local simulation variables
+			nEvents = 2;
+			
+			final int EVENT_ARRIVAL     = 1;  // Event type for arrival of a customer
+		    final int EVENT_DEPARTURE   = 2;  // Event type for departure of a customer
+		    final int EVENT_CLOSE_DOORS = 3;  // Event type for closing doors at 5 P.M.
+
+		    final int STREAM_INTERARRIVAL = 1;
+			
+			// Run the simulation while more delays are still needed 
+	        for (numTellers = minTellers; numTellers <= maxTellers; numTellers++) 
+	        {
+	            Event.Initialize();
+
+	            //UpdateTimAvgStats();     // Update time-average statistical accumulators.
+
+	            // Schedule the first arrival. 
+	            double time = SimLib_Random.Expon(meanInterArrival, STREAM_INTERARRIVAL);
+	            Event ev = new Event(time, EVENT_ARRIVAL);
+	            //System.out.println("time generated " + time);
+	            Event.EventSchedule(ev);
+	            //Event.DisplayQueue();
+
+	            // Schedule the bank closing, in minutes
+	            ev = new Event(60.0 * lengthDoorsOpen, EVENT_CLOSE_DOORS);
+//	            ev = new Event(20.0, EVENT_CLOSE_DOORS);
+	            
+	            Event.EventSchedule(ev);
+
+	            while (Event.GetQueueSize(25) != 0)
+	            {
+	                Event.Timing();                // Determine the next event.
+
+	                switch (Event.GetNextEventType())   // Invoke the appropriate event function.
+	                {
+	                    case EVENT_ARRIVAL:
+	                       Bank.Arrive();
+	                    break;
+	                    case EVENT_DEPARTURE:
+	                       Bank.Depart(Event.GetTellerNumber());
+	                    break;
+	                    case EVENT_CLOSE_DOORS:
+	                       Event.EventCancel(EVENT_ARRIVAL); //Cancel the only arrival event in the event queue
+	                    break;
+	                }
+	            }
+
+	            Bank.Report();
+	        }
 		}
 		else {
 			System.out.println("Invalid Simulation Selection.");

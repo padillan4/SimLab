@@ -1,4 +1,4 @@
-package simLab;
+package SimLab;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,8 +8,8 @@ public class Event
 {
     public enum Order {FIRST, LAST, INCREASING, DECREASING};
 
-    static private final int             MAX_QUEUES = 25;          
-    
+    static private final int             MAX_QUEUES = 24;          
+    static private double                simTime;
     static private int                   nextEventType;
     static private int                   tellerNumber;
     static private LinkedList<Event>     eventList;
@@ -18,10 +18,13 @@ public class Event
     private double                      eventSimTime;
     private int                         eventType;
     private int                         teller;
+    
+    final int SAMPST_DELAYS     = 1;  // sampst variable for delays in queue(s)
 
-    /**
-     * Constructor for objects of class Event
-     */
+    final int STREAM_INTERARRIVAL = 1;
+    final int STREAM_SERVICE = 2;
+
+    // Constructor for objects of class Event
     public Event()
     {
         this.eventSimTime = 0.0;
@@ -29,9 +32,7 @@ public class Event
         this.teller       = 0;
     }
 
-    /**
-     * Constructor for objects of class Event
-     */
+    // Constructor for objects of class Event
     public Event(double eventSimTime, int eventType)
     {
         this.eventSimTime = eventSimTime;
@@ -39,9 +40,7 @@ public class Event
         this.teller       = 0;
     }
     
-        /**
-     * Constructor for objects of class Event
-     */
+     // Constructor for objects of class Event
     public Event(double eventSimTime, int eventType, int teller)
     {
         this.eventSimTime = eventSimTime;
@@ -49,15 +48,11 @@ public class Event
         this.teller       = teller;
     }
 
-    /**
-     */
     public double GetEventTime()
     {
         return eventSimTime;
     }
     
-    /**
-     */
     public int GetEventType()
     {
         return eventType;
@@ -70,29 +65,69 @@ public class Event
 
     static public void EventSchedule(Event ev)
     {
-    	
+    	eventList.add(ev);
     }
 
     static public void InsertInQueue(Event ev, Order order, int qNum)
     {
-    	if(qNum >= 1 || qNum <= 24) {
-    		queueLists.add(queueLists.size(), eventList);
-    		
+    	if(queueLists.get(qNum) != null){
+    		if(order == Order.FIRST){
+    			queueLists.get(qNum).addFirst(ev);
+    		}
+    		else if(order == Order.LAST){
+    			queueLists.get(qNum).add(ev);
+    		}
     	}
-    	
+    	else{
+    		System.out.println("invalid qNum to insert.");
+    	}
     }
 
     static Object RemoveFromQueue(Order order, int qNum)
     {
+    	if(order == Order.FIRST && queueLists.get(qNum) != null){
+    		return queueLists.get(qNum).removeFirst();
+    	}
+    	else if(order == Order.LAST && queueLists.get(qNum) != null){
+    		return queueLists.get(qNum).removeLast();
+    	}
+    	else{
+    		return null;
+    	}
+    }
+    
+    static int EventCancel(int eventType){
+    	ListIterator it = eventList.listIterator();
     	
-    	return 0;
+    	if(eventType == 1 && eventList.isEmpty() != true){
+    		while(it.hasNext()){
+    			if(it.next().equals(eventType)){
+    				
+    			}
+    		}
+    		return 1;
+    	}
+    	else if(eventType == 2){
+    		
+    		return 1;
+    	}
+    	else{
+    		return 0;
+    	}
     }
 
 
-
+    //Initialization function
     static public void Initialize()
     {        
-    	
+    	//Initialize lists for simulation
+    	eventList = new LinkedList<Event>();
+    	queueLists = new ArrayList<LinkedList>();
+    }
+
+    static public double GetSimTime()
+    {
+        return simTime;
     }
     
     static public int GetNextEventType()
@@ -105,70 +140,17 @@ public class Event
         return tellerNumber;
     }
 
-    /**
-     * Gets the amount of Events before the specified qNum
-     * 
-     * @param qNum    the specified qNum
-     */
     static public int GetQueueSize(int qNum)
     {
-    	int waitLength = 0;
-    	for(int i = 0; i < qNum; i++) {
-    		waitLength = i;
-    	}
-    	return waitLength;
+    	return queueLists.get(qNum).size();
     }
 
-    /**
-     * Searches for the first Event object with specified eventType
-     * then removes it from eventList.
-     * 
-     * @param eventType    the event type to be removed
-     */
-    static public void EventCancel(int eventType) 
-    {
-    	int i = 0; 
-    	while(i < eventList.size()) {
-    		if(eventList.get(i).GetEventType() == eventType) {
-    			eventList.remove(i);
-    			i = eventList.size(); //Kills the loop
-    		} else {
-    			i++;
-    		}
-    	}
-    }
-    
     static public void Timing()
     {
         Event ev      = (Event)RemoveFromQueue(Order.FIRST, 25);
+        simTime       = ev.GetEventTime();
         nextEventType = ev.GetEventType();
         tellerNumber  = ev.GetTeller();
         
     }
-
-    /**
-     * I don't know what this methods suppose to do
-     * @param d
-     * @param sampstDelays
-     */
-	public static void Sampst(double d, int sampstDelays) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
-     * I don't know what this methods suppose to do
-     */
-	public static double Filest(int j) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	/**
-     * I don't know what this methods suppose to do
-     */
-	public static void OutSampst(int sampstDelays, int sampstDelays2) {
-		// TODO Auto-generated method stub
-		
-	}
 }
