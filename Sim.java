@@ -61,7 +61,25 @@ public class Sim {
 		}
 		else if(simSelected.toLowerCase().equals("banking")) {
 			//Selected Banking simulation
+			int minTellers, maxTellers;
+			double meanInterArrival, meanService, lengthDoorOpens;
+			
+			//Gather input data
+			System.out.println("You have selected multiteller banking simulation.");
+			System.out.print("Enter minimum number of tellers(int): ");
+			minTellers = sc.nextInt();
+			System.out.print("Enter maximum number of tellers(int): ");
+			maxTellers = sc.nextInt();
+			System.out.print("Enter mean arrival time(double): ");
+			meanInterArrival = sc.nextDouble();
+			System.out.print("Enter mean service time(double): ");
+			meanService = sc.nextDouble();
+			System.out.print("Enter total time bank is open(double): ");
+			lengthDoorOpens = sc.nextDouble();
+			System.out.println();
 			sc.close();
+			
+			//Run banking simulation
 		}
 		else {
 			System.out.println("Invalid Simulation Selection.");
