@@ -1,6 +1,7 @@
 package SimLab;
 
 import java.util.Scanner;
+
 import java.util.ArrayList;
 
 public class Bank
@@ -30,7 +31,6 @@ public class Bank
 
     static int nEvents;
     static int serverStatus;
-    static int numInQ;
     static double timeLastEvent;
     static int nCustsDelayed;
     static double totalOfDelays; 
@@ -199,8 +199,15 @@ public class Bank
     {
         double avgNumInQ = 0.0;
         
+        avgNumInQ = Event.GetNumInQ() / Event.GetSimTime();
+        System.out.println(avgNumInQ);
+        
         System.out.format("%n%nWith%2d tellers, average number in queue = %10.3f", numTellers, avgNumInQ);
         
         System.out.format("%n%nDelays in queue, in minutes:%n");
+    }
+    
+    static void setTellers(int Tellers){
+    	numTellers = Tellers;
     }
 }

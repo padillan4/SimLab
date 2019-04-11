@@ -1,6 +1,7 @@
 package SimLab;
 
 import java.util.Scanner;
+
 import java.util.ArrayList;
 
 // File to execute
@@ -93,26 +94,22 @@ public class Sim {
 			// Run the simulation while more delays are still needed 
 	        for (numTellers = minTellers; numTellers <= maxTellers; numTellers++) 
 	        {
-	            Event.Initialize();
-
-	            //UpdateTimAvgStats();     // Update time-average statistical accumulators.
+	            Event.Initialize(numTellers);
+	            Bank.setTellers(numTellers);
 
 	            // Schedule the first arrival. 
 	            double time = SimLib_Random.Expon(meanInterArrival, STREAM_INTERARRIVAL);
 	            Event ev = new Event(time, EVENT_ARRIVAL);
-	            //System.out.println("time generated " + time);
 	            Event.EventSchedule(ev);
-	            //Event.DisplayQueue();
 
 	            // Schedule the bank closing, in minutes
 	            ev = new Event(60.0 * lengthDoorsOpen, EVENT_CLOSE_DOORS);
-//	            ev = new Event(20.0, EVENT_CLOSE_DOORS);
-	            
 	            Event.EventSchedule(ev);
 
 	            while (Event.GetQueueSize(25) != 0)
 	            {
 	                Event.Timing();                // Determine the next event.
+	                Event.UpdateTimAvgStats(numTellers);		// Update time-average statistical accumulators.
 
 	                switch (Event.GetNextEventType())   // Invoke the appropriate event function.
 	                {
@@ -127,7 +124,6 @@ public class Sim {
 	                    break;
 	                }
 	            }
-
 	            Bank.Report();
 	        }
 		}

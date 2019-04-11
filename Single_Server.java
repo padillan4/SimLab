@@ -1,5 +1,7 @@
 package SimLab;
 
+
+
 public class Single_Server {
 	
 	public enum serverState {IDLE, BUSY};

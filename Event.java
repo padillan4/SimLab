@@ -19,6 +19,8 @@ public class Event
     private int                         eventType;
     private int                         teller;
     
+    static private int 					numInQ;
+    
     final int SAMPST_DELAYS     = 1;  // sampst variable for delays in queue(s)
 
     final int STREAM_INTERARRIVAL = 1;
@@ -70,46 +72,86 @@ public class Event
 
     static public void InsertInQueue(Event ev, Order order, int qNum)
     {
+    	if(qNum == 25){
+    		if(order == Order.FIRST){
+    			eventList.addFirst(ev);
+    		}
+    		else if(order == Order.LAST){
+    			eventList.addLast(ev);
+    		}
+    	}
     	if(queueLists.get(qNum) != null){
     		if(order == Order.FIRST){
     			queueLists.get(qNum).addFirst(ev);
     		}
     		else if(order == Order.LAST){
-    			queueLists.get(qNum).add(ev);
+    			queueLists.get(qNum).addLast(ev);
     		}
     	}
     	else{
     		System.out.println("invalid qNum to insert.");
+    		System.exit(4);
     	}
     }
 
     static Object RemoveFromQueue(Order order, int qNum)
     {
-    	if(order == Order.FIRST && queueLists.get(qNum) != null){
+    	if(qNum == 25){
+    		if(order == Order.FIRST && eventList != null){
+    			return eventList.removeFirst();
+    		}
+    		else if(order == Order.LAST && eventList != null){
+    			return eventList.removeLast();
+    		}
+    	}
+    	else if(order == Order.FIRST && queueLists.get(qNum) != null){
     		return queueLists.get(qNum).removeFirst();
     	}
     	else if(order == Order.LAST && queueLists.get(qNum) != null){
     		return queueLists.get(qNum).removeLast();
     	}
-    	else{
-    		return null;
-    	}
+    	return null;
     }
     
     static int EventCancel(int eventType){
-    	ListIterator it = eventList.listIterator();
+    	ListIterator<Event> it = eventList.listIterator();
+    	boolean found = false;
     	
     	if(eventType == 1 && eventList.isEmpty() != true){
-    		while(it.hasNext()){
-    			if(it.next().equals(eventType)){
-    				
+    		while(it.hasNext() && found != true){
+    			if(it.next().GetEventType() == eventType){
+    				eventList.remove(it.nextIndex()-1);
+    				found = true;
+    				return 1;
+    			}
+    			else if(it.nextIndex() > eventList.size()){
+    				return 0;
     			}
     		}
-    		return 1;
+    		if(found == true){
+    			return 1;
+    		}
+    		else{
+    			return 0;
+    		}
     	}
-    	else if(eventType == 2){
-    		
-    		return 1;
+    	else if(eventType == 2 && eventList.isEmpty() != true){
+    		while(it.hasNext() && found != true){
+    			if(it.next().GetEventType() == eventType){
+    				eventList.remove(it.nextIndex()-1);
+    				found = true;
+    				return 1;
+    			}
+    			else if(it.nextIndex() > eventList.size()){
+    				return 0;
+    			}
+    		}
+    		if(found == true){
+    			return 1;
+    		}
+    		else{
+    			return 0;
+    		}
     	}
     	else{
     		return 0;
@@ -118,11 +160,20 @@ public class Event
 
 
     //Initialization function
-    static public void Initialize()
+    static public void Initialize(int numTellers)
     {        
     	//Initialize lists for simulation
     	eventList = new LinkedList<Event>();
     	queueLists = new ArrayList<LinkedList>();
+    	
+    	//Initialize simulation clock
+    	simTime = 0.0;
+    	numInQ = 0;
+    	
+    	//Initialize queue size
+    	for(int i = 0; i<numTellers; i++){
+    		queueLists.add(new LinkedList());
+    	}
     }
 
     static public double GetSimTime()
@@ -142,7 +193,12 @@ public class Event
 
     static public int GetQueueSize(int qNum)
     {
-    	return queueLists.get(qNum).size();
+    	if(qNum == 25){
+    		return eventList.size();
+    	}
+    	else{
+    		return queueLists.get(qNum).size();
+    	}	
     }
 
     static public void Timing()
@@ -152,5 +208,17 @@ public class Event
         nextEventType = ev.GetEventType();
         tellerNumber  = ev.GetTeller();
         
+    }
+    
+    static void UpdateTimAvgStats(int numTellers){
+    	for(int i = 0; i < numTellers; i++){
+    		System.out.println("tellers: " + numTellers);
+    		System.out.println("q:" + Event.GetQueueSize(i));
+    		numInQ += Event.GetQueueSize(i);
+    	}
+    }
+    
+    public static int GetNumInQ(){
+    	return numInQ;
     }
 }
