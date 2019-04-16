@@ -1,4 +1,4 @@
-package SimLab;
+package simLab;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -6,7 +6,8 @@ import java.util.ListIterator;
 
 public class Event
 {
-    public enum Order {FIRST, LAST, INCREASING, DECREASING};
+	public enum Order {FIRST, LAST, INCREASING, DECREASING};
+	public enum Status {BUSY, IDLE};
 
     static private final int             MAX_QUEUES = 24;          
     static private double                simTime;
@@ -14,17 +15,11 @@ public class Event
     static private int                   tellerNumber;
     static private LinkedList<Event>     eventList;
     static private ArrayList<LinkedList> queueLists;
+    static private ArrayList<Status> 	 statusList;
 
     private double                      eventSimTime;
     private int                         eventType;
     private int                         teller;
-    
-    static private int 					numInQ;
-    
-    final int SAMPST_DELAYS     = 1;  // sampst variable for delays in queue(s)
-
-    final int STREAM_INTERARRIVAL = 1;
-    final int STREAM_SERVICE = 2;
 
     // Constructor for objects of class Event
     public Event()
@@ -64,10 +59,41 @@ public class Event
     {
         return teller;
     }
+    
+    static public int GetStatus(int teller) {
+    	if(statusList.get(teller) != null) {
+    		if(statusList.get(teller) == Status.IDLE) {
+    			return 0;
+    		}
+    		else {
+    			return 1;
+    		}
+    	}
+    	return 0;
+    }
+    
+    static public void SetStatus(int teller, Status status){
+    	if(statusList.get(teller) != null) {
+    		statusList.set(teller, status);
+    	}
+    }
 
     static public void EventSchedule(Event ev)
     {
-    	eventList.add(ev);
+    	ListIterator<Event> it = eventList.listIterator();
+    	boolean schedualed = false;
+    	int ind = 0;
+    	
+    	while(it.hasNext() && schedualed != true) {
+    		if(ev.GetEventTime() <= it.next().GetEventTime()) {
+    			ind = it.nextIndex();
+    		}
+    		else {
+    			schedualed = true;
+    		}
+    	}
+    	
+    	eventList.add(ind, ev);
     }
 
     static public void InsertInQueue(Event ev, Order order, int qNum)
@@ -80,7 +106,7 @@ public class Event
     			eventList.addLast(ev);
     		}
     	}
-    	if(queueLists.get(qNum) != null){
+    	else if(queueLists.get(qNum) != null){
     		if(order == Order.FIRST){
     			queueLists.get(qNum).addFirst(ev);
     		}
@@ -117,33 +143,11 @@ public class Event
     	ListIterator<Event> it = eventList.listIterator();
     	boolean found = false;
     	
-    	if(eventType == 1 && eventList.isEmpty() != true){
+    	if(eventList.isEmpty() != true){
     		while(it.hasNext() && found != true){
     			if(it.next().GetEventType() == eventType){
     				eventList.remove(it.nextIndex()-1);
     				found = true;
-    				return 1;
-    			}
-    			else if(it.nextIndex() > eventList.size()){
-    				return 0;
-    			}
-    		}
-    		if(found == true){
-    			return 1;
-    		}
-    		else{
-    			return 0;
-    		}
-    	}
-    	else if(eventType == 2 && eventList.isEmpty() != true){
-    		while(it.hasNext() && found != true){
-    			if(it.next().GetEventType() == eventType){
-    				eventList.remove(it.nextIndex()-1);
-    				found = true;
-    				return 1;
-    			}
-    			else if(it.nextIndex() > eventList.size()){
-    				return 0;
     			}
     		}
     		if(found == true){
@@ -160,19 +164,20 @@ public class Event
 
 
     //Initialization function
-    static public void Initialize(int numTellers)
+    static public void Initialize()
     {        
     	//Initialize lists for simulation
     	eventList = new LinkedList<Event>();
     	queueLists = new ArrayList<LinkedList>();
+    	statusList = new ArrayList<Status>();
     	
     	//Initialize simulation clock
     	simTime = 0.0;
-    	numInQ = 0;
     	
     	//Initialize queue size
-    	for(int i = 0; i<numTellers; i++){
+    	for(int i = 0; i<Sim.numTellers; i++){
     		queueLists.add(new LinkedList());
+    		statusList.add(Status.IDLE);
     	}
     }
 
@@ -207,18 +212,17 @@ public class Event
         simTime       = ev.GetEventTime();
         nextEventType = ev.GetEventType();
         tellerNumber  = ev.GetTeller();
-        
     }
     
-    static void UpdateTimAvgStats(int numTellers){
-    	for(int i = 0; i < numTellers; i++){
-    		System.out.println("tellers: " + numTellers);
+    static void UpdateTimAvgStats(){
+    	for(int i = 0; i < Sim.numTellers; i++){
+    		System.out.println("simtime: " + simTime);
+    		System.out.println("eventList: " + eventList.size());
+    		System.out.println("tellers: " + Sim.numTellers);
     		System.out.println("q:" + Event.GetQueueSize(i));
-    		numInQ += Event.GetQueueSize(i);
+    		System.out.println("i" + i);
     	}
     }
     
-    public static int GetNumInQ(){
-    	return numInQ;
-    }
+    
 }

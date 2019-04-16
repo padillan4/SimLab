@@ -1,4 +1,4 @@
-package SimLab;
+package simLab;
 
 
 

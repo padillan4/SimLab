@@ -1,5 +1,4 @@
-package SimLab;
-
+package simLab;
 
 public class SimLib_Random
 {
