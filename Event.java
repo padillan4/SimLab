@@ -80,20 +80,7 @@ public class Event
 
     static public void EventSchedule(Event ev)
     {
-    	ListIterator<Event> it = eventList.listIterator();
-    	boolean schedualed = false;
-    	int ind = 0;
-    	
-    	while(it.hasNext() && schedualed != true) {
-    		if(ev.GetEventTime() <= it.next().GetEventTime()) {
-    			ind = it.nextIndex();
-    		}
-    		else {
-    			schedualed = true;
-    		}
-    	}
-    	
-    	eventList.add(ind, ev);
+    	Event.InsertInQueue(ev, Order.INCREASING, 25);
     }
 
     static public void InsertInQueue(Event ev, Order order, int qNum)
@@ -104,6 +91,42 @@ public class Event
     		}
     		else if(order == Order.LAST){
     			eventList.addLast(ev);
+    		}
+    		else if(order == Order.INCREASING) {
+    			ListIterator<Event> it = eventList.listIterator();
+    	    	boolean schedualed = false;
+    	    	int ind = 0;
+    	    	
+    	    	while(it.hasNext() && schedualed != true) {
+    	    		if(ev.GetEventTime() <= it.next().GetEventTime()) {
+    	    			ind = it.nextIndex() - 1;
+    	    			schedualed = true;
+    	    		}
+    	    		else if(it.nextIndex() == eventList.size() && schedualed == false) {
+    	    			eventList.add(ev);
+    	    			return;
+    	    		}
+    	    	}
+    	 
+    	    	eventList.add(ind, ev);
+    		}
+    		else if(order == Order.DECREASING) {
+    			ListIterator<Event> it = eventList.listIterator();
+    	    	boolean schedualed = false;
+    	    	int ind = 0;
+    	    	
+    	    	while(it.hasNext() && schedualed != true) {
+    	    		if(ev.GetEventTime() > it.next().GetEventTime()) {
+    	    			ind = it.nextIndex() - 1;
+    	    			schedualed = true;
+    	    		}
+    	    		else if(it.nextIndex() == eventList.size() && schedualed == false) {
+    	    			eventList.addFirst(ev);
+    	    			return;
+    	    		}
+    	    	}
+    	    	
+    	    	eventList.add(ind, ev);
     		}
     	}
     	else if(queueLists.get(qNum) != null){
@@ -146,7 +169,7 @@ public class Event
     	if(eventList.isEmpty() != true){
     		while(it.hasNext() && found != true){
     			if(it.next().GetEventType() == eventType){
-    				eventList.remove(it.nextIndex()-1);
+    				eventList.remove(it.nextIndex() - 1);
     				found = true;
     			}
     		}
@@ -179,6 +202,12 @@ public class Event
     		queueLists.add(new LinkedList());
     		statusList.add(Status.IDLE);
     	}
+    	
+    	Sim.minDelay = 0;
+    	Sim.maxDelay = 0;
+    	Sim.totalOfDelays = 0;
+    	Sim.nCustsDelayed = 0;
+    	Sim.delays = 0;
     }
 
     static public double GetSimTime()
@@ -215,14 +244,22 @@ public class Event
     }
     
     static void UpdateTimAvgStats(){
+    	int temp = 0;
     	for(int i = 0; i < Sim.numTellers; i++){
-    		System.out.println("simtime: " + simTime);
-    		System.out.println("eventList: " + eventList.size());
-    		System.out.println("tellers: " + Sim.numTellers);
-    		System.out.println("q:" + Event.GetQueueSize(i));
-    		System.out.println("i" + i);
+    		temp += Event.GetQueueSize(i);
     	}
+    	Sim.numInQ.add(temp/Event.GetSimTime());
     }
     
+    static void Sampst(double delay, int stream) {
+    	Sim.nCustsDelayed += 1;
+    	Sim.delays += delay;
+    	if(Sim.minDelay > delay) {
+    		Sim.minDelay = delay;
+    	}
+    	if(Sim.maxDelay < delay) {
+    		Sim.maxDelay = delay;
+    	}
+    }
     
 }

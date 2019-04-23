@@ -30,14 +30,13 @@ public class Sim {
 
     static int nEvents;
     static int serverStatus;
-    static int numInQ;
+    static ArrayList numInQ;
     static double timeLastEvent;
     static int nCustsDelayed;
     static double totalOfDelays; 
-    static double areaNumInQ;
-    static double areaServerStatus;
-    static double[] timeNextEvent = new double[3];
-    static double total_of_delays;
+    static double minDelay;
+    static double maxDelay;
+    static double delays;
 
 	public static void main(String[] args) {
 		
@@ -64,6 +63,12 @@ public class Sim {
 			simCount = sc.nextInt();
 			System.out.println();
 			sc.close();
+			
+			/** Default Input
+			 * Mean interarrival time      1.000 minutes
+			Mean service time           0.500 minutes
+			Number of customers          1000
+			 */
 			
 			//Run single server simulation(s)
 			for(int i = 0; i < simCount; i++) {
@@ -110,8 +115,8 @@ public class Sim {
 			lengthDoorsOpen = sc.nextDouble();
 			System.out.println();**/
 			sc.close();
+			
 			minTellers = 4;
-	        // maxTellers = 7;
 	        maxTellers = 7;
 	        meanInterArrival = 1.0;
 	        meanService = 4.5;
@@ -119,17 +124,18 @@ public class Sim {
 			// Run the simulation while more delays are still needed 
 	        for (numTellers = minTellers; numTellers <= maxTellers; numTellers++) 
 	        {
+	        	numInQ = new ArrayList<Double>();
 	            Event.Initialize();
 
 	            // Schedule the first arrival. 
 	            double time = SimLib_Random.Expon(meanInterArrival, STREAM_INTERARRIVAL);
 	            Event ev = new Event(time, EVENT_ARRIVAL);
 	            Event.EventSchedule(ev);
-
+	            
 	            // Schedule the bank closing, in minutes
 	            ev = new Event(60.0 * lengthDoorsOpen, EVENT_CLOSE_DOORS);
 	            Event.EventSchedule(ev);
-
+	            
 	            while (Event.GetQueueSize(25) != 0)
 	            {
 	                Event.Timing();                // Determine the next event.
@@ -175,7 +181,7 @@ public class Sim {
         {
             if (Event.GetStatus(teller) == 0)  // Is the teller idle? if so, this customer has 0 delay
             {
-            //Event.Sampst(0.0, SAMPST_DELAYS);
+            	Event.Sampst(0.0, SAMPST_DELAYS);
                 
                 // Make this teller busy (attributes are irrelevant). 
                 Event.SetStatus(teller, Event.Status.BUSY);
@@ -184,7 +190,6 @@ public class Sim {
 
                 ev = new Event(Event.GetSimTime() + SimLib_Random.Expon(meanService, STREAM_SERVICE), EVENT_DEPARTURE, teller);
                 Event.EventSchedule(ev);
-
                 return;
             }
         }
@@ -229,7 +234,7 @@ public class Sim {
             double eTime = evRemoved.GetEventTime();
             double delay = Event.GetSimTime() - evRemoved.GetEventTime();  // total for customer going from front of line to teller
             
-        //Event.Sampst(delay, SAMPST_DELAYS);
+            Event.Sampst(delay, SAMPST_DELAYS);
             
             // Create the depart event for the customer now being served by teller number (teller)
             Event ev = new Event(Event.GetSimTime() + SimLib_Random.Expon(meanService, STREAM_SERVICE), EVENT_DEPARTURE, teller);
@@ -298,7 +303,7 @@ public class Sim {
                 // the teller busy, and start service.
                 
                 double delay = Event.GetSimTime() - evRemoved.GetEventTime();  // total delay from back of line to switch line
-          //Event.Sampst(delay, SAMPST_DELAYS);
+                Event.Sampst(delay, SAMPST_DELAYS);
             
                 Event.SetStatus(teller, Event.Status.BUSY);
                 Event ev = new Event(Event.GetSimTime() + SimLib_Random.Expon(meanService, STREAM_SERVICE), EVENT_DEPARTURE, teller);
@@ -313,12 +318,20 @@ public class Sim {
     static void Report()
     {
         double avgNumInQ = 0.0;
+        double avgDelays = 0.0;
         
-        avgNumInQ = numInQ / Event.GetSimTime();
-        System.out.println(avgNumInQ);
+        for(int i = 0; i< numInQ.size(); i++) {
+        	avgNumInQ += (double)numInQ.get(i);
+        }
+       avgDelays = delays/Event.GetSimTime();
         
         System.out.format("%n%nWith%2d tellers, average number in queue = %10.3f", numTellers, avgNumInQ);
-        
-        System.out.format("%n%nDelays in queue, in minutes:%n");
+        System.out.format("%n%nDelays in queue, in minutes:%n%n");
+        System.out.println(" sampst                         Number\r\n" + 
+        		"variable                          of\r\n" + 
+        		" number       Average           values          Maximum          Minimum\r\n" + 
+        		"________________________________________________________________________\n");
+        System.out.format("    %d          %.3f             %d             %.3f            %.3f  %n", SAMPST_DELAYS, avgDelays, nCustsDelayed, maxDelay, minDelay);
+        System.out.println("________________________________________________________________________");
     }
 }
